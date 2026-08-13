@@ -1,0 +1,30 @@
+{
+  "_comment": "Edit these values to match your charity. The scanner re-reads this file every run.",
+
+  "annual_income_under": 1000000,
+
+  "acceptable_locations": [
+    "England",
+    "National",
+    "International"
+  ],
+
+  "_locations_comment": "A grant passes if its listed location contains ANY of these strings. Add 'North East England' etc. if you only work in part of England. 'National' and 'International' are included because gov.uk uses those labels for UK-wide / non-region-specific schemes.",
+
+  "required_applicant_type": "Non-profit",
+
+  "cause_keywords": [
+    "charity",
+    "charities",
+    "voluntary sector",
+    "community",
+    "disadvantage",
+    "young people",
+    "homelessness",
+    "domestic abuse",
+    "disability",
+    "mental health"
+  ],
+
+  "_keywords_comment": "A grant passes the cause check if its title or summary contains ANY of these words (case-insensitive). gov.uk grants don't have clean cause tags like National Lottery does, so this is a rough net — widen or narrow it based on what you actually see come through. Leave the list empty [] to disable cause filtering entirely and see everything open to non-profits."
+}
