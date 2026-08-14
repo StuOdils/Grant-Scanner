@@ -1,0 +1,39 @@
+name: Daily grant scan
+
+on:
+  schedule:
+    # Runs at 07:00 UTC every day. Edit the cron expression to change the time.
+    - cron: "0 7 * * *"
+  workflow_dispatch: {}   # lets you trigger it manually from the Actions tab too
+
+jobs:
+  scan:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write   # needed so the workflow can commit the updated seen_grants.json back
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: Install dependencies
+        run: pip install -r requirements.txt
+
+      - name: Run scanner
+        env:
+          SMTP_HOST: ${{ secrets.SMTP_HOST }}
+          SMTP_PORT: ${{ secrets.SMTP_PORT }}
+          SMTP_USER: ${{ secrets.SMTP_USER }}
+          SMTP_PASS: ${{ secrets.SMTP_PASS }}
+          ALERT_TO: ${{ secrets.ALERT_TO }}
+        run: python main.py
+
+      - name: Save updated seen-grants list
+        run: |
+          git config user.name "grant-scanner-bot"
+          git config user.email "actions@github.com"
+          git add seen_grants.json
+          git diff --staged --quiet || git commit -m "Update seen grants [skip ci]"
+          git push
