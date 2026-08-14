@@ -103,11 +103,14 @@ def _parse_card(card) -> Grant | None:
 def get_open_grants(max_pages: int = 6, delay_seconds: float = 1.0) -> list[Grant]:
     """
     Fetches grant listings across up to max_pages of results (20 per page).
-    Stops early once a page returns no cards. delay_seconds is a polite
-    pause between requests so this doesn't hammer a public government
-    service.
+    Stops early once a page returns no cards, OR once a page returns nothing
+    but URLs we've already seen (which means the 'skip' pagination parameter
+    isn't actually moving forward — seen live: gov.uk returned the same 20
+    grants 6 times over, which without this check would have produced the
+    same grant appearing 6 times in the final list).
     """
     grants: list[Grant] = []
+    seen_urls: set[str] = set()   # global across ALL pages, not just one
     skip = 0
 
     for _ in range(max_pages):
@@ -133,7 +136,17 @@ def get_open_grants(max_pages: int = 6, delay_seconds: float = 1.0) -> list[Gran
         if not page_grants:
             break
 
-        grants.extend(page_grants)
+        # Only keep grants we haven't seen on an earlier page.
+        new_this_page = [g for g in page_grants if g.url not in seen_urls]
+
+        if not new_this_page:
+            # Every grant on this "page" was already seen before — the skip
+            # parameter isn't actually advancing pagination. Stop here
+            # rather than looping max_pages times over identical results.
+            break
+
+        grants.extend(new_this_page)
+        seen_urls.update(g.url for g in new_this_page)
         skip += 20
         time.sleep(delay_seconds)
 
